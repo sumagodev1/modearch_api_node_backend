@@ -63,6 +63,11 @@ const productImagesRouter = require('./routes/productImagesRoutes')
 const leadershipRoutes = require('./routes/leadershipRoutes');
 const about = require('./routes/aboutRoutes');
 
+// new modearch api
+const categoryRoutes = require('./routes/categoryRoutes');
+const projectNameRoutes = require('./routes/projectNameRoutes');
+const projectDetailsRoutes = require('./routes/projectDetailsRoutes');
+
 app.use('/about', about);
 app.use('/leadership', leadershipRoutes);
 app.use('/team', teamRoutes);
@@ -92,6 +97,12 @@ app.use('/applicationData',ApplicationRoutes);
 app.use('/materialData', materialDataRoutes);
 app.use('/productAggregate', productAggregateRoutes);
 app.use('/productImages', productImagesRouter);
+
+// new modearch api
+app.use('/category', categoryRoutes);
+app.use('/projectName', projectNameRoutes);
+app.use('/projectDetails', projectDetailsRoutes);
+
 // Global Error Handling Middleware
 // app.use((err, req, res, next) => {
 //   if (err instanceof multer.MulterError) {
