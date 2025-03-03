@@ -9,31 +9,32 @@ const {
   updateGalleryImageImages,deleteGalleryImageImage,
   updateIsDelete,
 } = require("../controllers/GalleryImageDetailsWithImagesController");
+const authenticateToken = require('../middleware/auth');
 
 // Create a GalleryImage with multiple images
 router.post(
   "/create-galleryImageDetailsWithImages",
-  upload.array("gallery_images"),
+  upload.array("gallery_images"), authenticateToken,
   createGalleryImage
 );
 
 // Get all GalleryImages
-router.get("/galleryImages", getAllGalleryImages);
+router.get("/galleryImages", authenticateToken, getAllGalleryImages);
 
 // Get a single GalleryImage by ID
-router.get("/galleryImages/:id", getGalleryImageById);
+router.get("/galleryImages/:id", authenticateToken, getGalleryImageById);
 
-router.put("/galleryImages/:id/is-active", updateIsActive);
+router.put("/galleryImages/:id/is-active", authenticateToken, updateIsActive);
 
 // Update isDelete status
-router.delete("/galleryImages/:id/is-delete", updateIsDelete);
+router.delete("/galleryImages/:id/is-delete", authenticateToken, updateIsDelete);
 
 router.put(
   "/galleryImages/:id/images",
-  upload.array("gallery_images"),
+  upload.array("gallery_images"), authenticateToken,
   updateGalleryImageImages
 );
 
 // Delete a specific image
-router.delete("/galleryImages/:id/delete-image", deleteGalleryImageImage);
+router.delete("/galleryImages/:id/delete-image", authenticateToken, deleteGalleryImageImage);
 module.exports = router;
