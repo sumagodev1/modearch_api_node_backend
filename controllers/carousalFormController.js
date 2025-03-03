@@ -1,6 +1,35 @@
 const Contact = require('../models/CarousalForms');
 const apiResponse = require('../helper/apiResponse');
 
+// exports.addContact = async (req, res) => {
+//   try {
+//     const { name, email, mobile, message } = req.body;
+
+//     // Create the new contact in the database
+//     const contact = await Contact.create({ name, email, mobile, message });
+
+//     // Return success response
+//     return apiResponse.successResponseWithData(res, 'Contact added successfully', contact);
+//   } catch (error) {
+//     if (error.name === 'SequelizeUniqueConstraintError') {
+//       const fields = error.errors.map((err) => err.path);
+//       let message = 'Validation error: ';
+
+//       if (fields.includes('email')) {
+//         message += 'Email already exists. ';
+//       }
+//       if (fields.includes('mobile')) {
+//         message += 'Mobile number already exists.';
+//       }
+
+//       return apiResponse.validationErrorWithData(res, message.trim());
+//     }
+
+//     console.error('Add contact failed', error);
+//     return apiResponse.ErrorResponse(res, 'Add contact failed');
+//   }
+// };
+
 exports.addContact = async (req, res) => {
   try {
     const { name, email, mobile, message } = req.body;
@@ -11,20 +40,6 @@ exports.addContact = async (req, res) => {
     // Return success response
     return apiResponse.successResponseWithData(res, 'Contact added successfully', contact);
   } catch (error) {
-    if (error.name === 'SequelizeUniqueConstraintError') {
-      const fields = error.errors.map((err) => err.path);
-      let message = 'Validation error: ';
-
-      if (fields.includes('email')) {
-        message += 'Email already exists. ';
-      }
-      if (fields.includes('mobile')) {
-        message += 'Mobile number already exists.';
-      }
-
-      return apiResponse.validationErrorWithData(res, message.trim());
-    }
-
     console.error('Add contact failed', error);
     return apiResponse.ErrorResponse(res, 'Add contact failed');
   }

@@ -9,12 +9,12 @@ const UploadCV = sequelize.define('cvLists', {
   email: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true, // Unique constraint
+    // unique: true, // Unique constraint
   },
   phone: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true, // Unique constraint
+    // unique: true, // Unique constraint
   },
   subject: {
     type: DataTypes.STRING,

@@ -3,12 +3,14 @@ const ProjectDetails = require('../models/ProjectDetails')
 
 exports.addProjectDetails = async (req, res) => {
   try {
+    const { project_category_id} = req.body;
     const { project_category, desc } = req.body;
+    const { project_name_id } = req.body;
     const { project_name} = req.body;
     const { project_location} = req.body;
     const img = req.file ? req.file.path : null;
 
-    const ProjectDetails1 = await ProjectDetails.create({ img, project_category, project_name, project_location, isActive: true, isDelete: false });
+    const ProjectDetails1 = await ProjectDetails.create({ img, project_category_id, project_category, project_name_id, project_name, project_location, isActive: true, isDelete: false });
     return apiResponse.successResponseWithData(res, 'Project Details added successfully', ProjectDetails1);
   } catch (error) {
     console.error('Add Project Details failed', error);
@@ -19,7 +21,9 @@ exports.addProjectDetails = async (req, res) => {
 exports.updateProjectDetails = async (req, res) => {
   try {
     const { id } = req.params;
+    const { project_category_id } = req.body;
     const { project_category, desc } = req.body;
+    const { project_name_id } = req.body;
     const { project_name} = req.body;
     const { project_location} = req.body;
     const img = req.file ? req.file.path : null;
@@ -30,7 +34,9 @@ exports.updateProjectDetails = async (req, res) => {
     }
 
     ProjectDetails1.img = img || ProjectDetails1.img;
+    ProjectDetails1.project_category_id = project_category_id;
     ProjectDetails1.project_category = project_category;
+    ProjectDetails1.project_name_id = project_name_id;
     ProjectDetails1.project_name = project_name;
     ProjectDetails1.project_location = project_location;
     await ProjectDetails1.save();

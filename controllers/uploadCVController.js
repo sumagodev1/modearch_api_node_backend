@@ -29,19 +29,19 @@ exports.addUploadCV = async (req, res) => {
   } catch (error) {
     console.error("Upload CV failed", error);
 
-    if (error.name === "SequelizeUniqueConstraintError") {
-      const fields = error.errors.map((err) => err.path);
-      let message = "Validation error: ";
+    // if (error.name === "SequelizeUniqueConstraintError") {
+    //   const fields = error.errors.map((err) => err.path);
+    //   let message = "Validation error: ";
 
-      if (fields.includes("email")) {
-        message += "Email already exists. ";
-      }
-      if (fields.includes("phone")) {
-        message += "Phone number already exists. ";
-      }
+    //   if (fields.includes("email")) {
+    //     message += "Email already exists. ";
+    //   }
+    //   if (fields.includes("phone")) {
+    //     message += "Phone number already exists. ";
+    //   }
 
-      return apiResponse.validationErrorWithData(res, message.trim());
-    }
+    //   return apiResponse.validationErrorWithData(res, message.trim());
+    // }
 
     return apiResponse.ErrorResponse(res, "Upload CV failed");
   }

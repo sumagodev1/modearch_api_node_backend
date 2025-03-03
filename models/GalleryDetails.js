@@ -1,16 +1,12 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
-const ProjectName = sequelize.define('project_name_master', {
-  project_category: {
+const GalleryDetails = sequelize.define('gallery_deatils', {
+  img: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
   },
-  project_category_id: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  project_name: {
+  gallery_category: {
     type: DataTypes.STRING,
     allowNull: false,
   },
@@ -26,4 +22,4 @@ const ProjectName = sequelize.define('project_name_master', {
   timestamps: true,
 });
 
-module.exports = ProjectName;
+module.exports = GalleryDetails;

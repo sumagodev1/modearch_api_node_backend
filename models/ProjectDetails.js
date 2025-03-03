@@ -6,7 +6,15 @@ const ProjectDetails = sequelize.define('project_deatils', {
     type: DataTypes.STRING,
     allowNull: true,
   },
+  project_category_id: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
   project_category: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  project_name_id: {
     type: DataTypes.STRING,
     allowNull: false,
   },

@@ -2,10 +2,14 @@ const apiResponse = require("../helper/apiResponse");
 const ProjectName = require("../models/ProjectName");
 exports.addProjectName = async (req, res) => {
   try {
-    const { project_name } = req.body;
+    const { project_name, desc } = req.body;
+    const { project_category } = req.body;
+    const { project_category_id } = req.body;
 
     const ProjectName1 = await ProjectName.create({
       project_name,
+      project_category,
+      project_category_id,
       isActive: true,
       isDelete: false,
     });
@@ -23,14 +27,18 @@ exports.addProjectName = async (req, res) => {
 exports.updateProjectName = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, desc } = req.body;
+    const { project_name, desc } = req.body;
+    const { project_category } = req.body;
+    const { project_category_id } = req.body;
 
     const ProjectName1 = await ProjectName.findByPk(id);
     if (!ProjectName1) {
       return apiResponse.notFoundResponse(res, "Project Name not found");
     }
 
-    ProjectName1.title = title;
+    ProjectName1.project_name = project_name;
+    ProjectName1.project_Category = project_category;
+    ProjectName1.project_Category_id = project_category_id;
     await ProjectName1.save();
 
     return apiResponse.successResponseWithData(

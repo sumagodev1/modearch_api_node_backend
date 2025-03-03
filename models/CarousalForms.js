@@ -9,7 +9,7 @@ const Contact = sequelize.define('userForm', {
   email: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true, // Make email field unique
+    // unique: true, // Make email field unique
     validate: {
       isEmail: true,
     },
@@ -17,7 +17,7 @@ const Contact = sequelize.define('userForm', {
   mobile: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true, // Make mobile field unique
+    // unique: true, // Make mobile field unique
   },
   message: {
     type: DataTypes.TEXT,

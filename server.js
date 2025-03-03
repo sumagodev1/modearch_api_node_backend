@@ -67,6 +67,10 @@ const about = require('./routes/aboutRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const projectNameRoutes = require('./routes/projectNameRoutes');
 const projectDetailsRoutes = require('./routes/projectDetailsRoutes');
+const projectDetailsWithImagesRoutes = require('./routes/projectDetailsWithImagesRoutes')
+const galleryDetailsRoutes = require('./routes/galleryDetailsRoutes');
+const galleryImagesRoutes = require('./routes/galleryImagesRoutes')
+app.use("/uploads", express.static("uploads"));
 
 app.use('/about', about);
 app.use('/leadership', leadershipRoutes);
@@ -102,6 +106,9 @@ app.use('/productImages', productImagesRouter);
 app.use('/category', categoryRoutes);
 app.use('/projectName', projectNameRoutes);
 app.use('/projectDetails', projectDetailsRoutes);
+app.use('/projectDetailsWithImages',projectDetailsWithImagesRoutes)
+app.use('/galleryDetails',galleryDetailsRoutes)
+app.use('/galleryImages',galleryImagesRoutes)
 
 // Global Error Handling Middleware
 // app.use((err, req, res, next) => {
@@ -123,6 +130,8 @@ const testDbConnection = async () => {
     console.error("Error: " + err);
   }
 };
+
+app.use(express.urlencoded({ extended: true })); // Handles URL-encoded data
 
 // Initialize the application
 const init = async () => {

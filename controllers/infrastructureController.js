@@ -3,10 +3,10 @@ const apiResponse = require('../helper/apiResponse');
 
 exports.addInfrastructure = async (req, res) => {
   try {
-    const { title, desc } = req.body;
+    const { title, subtitle, desc } = req.body;
     const img = req.file ? req.file.path : null;
 
-    const infrastructure = await Infrastructure.create({ img, title, desc, isActive: true, isDelete: false });
+    const infrastructure = await Infrastructure.create({ img, title, subtitle, desc, isActive: true, isDelete: false });
     return apiResponse.successResponseWithData(res, 'Infrastructure added successfully', infrastructure);
   } catch (error) {
     console.error('Add infrastructure failed', error);
@@ -17,7 +17,7 @@ exports.addInfrastructure = async (req, res) => {
 exports.updateInfrastructure = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, desc } = req.body;
+    const { title, subtitle, desc } = req.body;
     const img = req.file ? req.file.path : null;
 
     const infrastructure = await Infrastructure.findByPk(id);
@@ -27,6 +27,7 @@ exports.updateInfrastructure = async (req, res) => {
 
     infrastructure.img = img || infrastructure.img;
     infrastructure.title = title;
+    infrastructure.subtitle = subtitle;
     infrastructure.desc = desc;
     await infrastructure.save();
 

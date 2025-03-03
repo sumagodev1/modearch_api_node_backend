@@ -51,4 +51,4 @@ const validateImageSize = (req, res, next) => {
     next();
   };
 
-  module.exports = { upload,upload2, validateImageSize };
+  module.exports = { upload, upload2, validateImageSize };
