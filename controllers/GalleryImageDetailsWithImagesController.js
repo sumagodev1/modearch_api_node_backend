@@ -112,54 +112,108 @@ const updateGalleryImageImages = async (req, res) => {
   
   
   
-  const deleteGalleryImageImage = async (req, res) => {
-    try {
-      const { id } = req.params;
-      const { imagePath } = req.body; // The image URL to delete
+  // const deleteGalleryImageImage = async (req, res) => {
+  //   try {
+  //     const { id } = req.params;
+  //     const { imagePath } = req.body; // The image URL to delete
   
-      const gallery = await GalleryImageDetailsWithImages.findByPk(id);
-      if (!gallery) {
-        return res.status(404).json({ message: "gallery not found" });
-      }
+  //     const gallery = await GalleryImageDetailsWithImages.findByPk(id);
+  //     if (!gallery) {
+  //       return res.status(404).json({ message: "gallery not found" });
+  //     }
   
-      // Parse the stringified JSON array into an actual array
-      let images = [];
-      try {
-        images = JSON.parse(gallery.gallery_images);
-      } catch (error) {
-        return res.status(500).json({ message: "Error parsing images" });
-      }
+  //     // Parse the stringified JSON array into an actual array
+  //     let images = [];
+  //     try {
+  //       images = JSON.parse(gallery.gallery_images);
+  //     } catch (error) {
+  //       return res.status(500).json({ message: "Error parsing images" });
+  //     }
   
-      // Normalize the imagePath format to match the stored paths
-      const normalizedImagePath = imagePath.startsWith('/') ? imagePath : `${imagePath}`;
+  //     // Normalize the imagePath format to match the stored paths
+  //     const normalizedImagePath = imagePath.startsWith('/') ? imagePath : `${imagePath}`;
   
-      // Check if the image exists in the gallery
-      console.log(normalizedImagePath)
-      if (!images.includes(normalizedImagePath)) {
-        return res.status(400).json({ message: "Image not found in gallery" });
-      }
+  //     // Check if the image exists in the gallery
+  //     console.log(normalizedImagePath)
+  //     if (!images.includes(normalizedImagePath)) {
+  //       return res.status(400).json({ message: "Image not found in gallery" });
+  //     }
   
-      // Remove the image from the array
-      gallery.gallery_images = images.filter((img) => img !== normalizedImagePath);
+  //     // Remove the image from the array
+  //     gallery.gallery_images = images.filter((img) => img !== normalizedImagePath);
   
-      // Delete the image from the server
-    //   const fullPath = path.join(__dirname, "..", normalizedImagePath);
-    const fullPath = path.join(__dirname, "..", "uploads/galleryImages", path.basename(normalizedImagePath));
+  //     // Delete the image from the server
+  //   //   const fullPath = path.join(__dirname, "..", normalizedImagePath);
+  //   const fullPath = path.join(__dirname, "..", "uploads/galleryImages", path.basename(normalizedImagePath));
 
 
-      if (fs.existsSync(fullPath)) {
-        fs.unlinkSync(fullPath); // Delete file
-      }
+  //     if (fs.existsSync(fullPath)) {
+  //       fs.unlinkSync(fullPath); // Delete file
+  //     }
   
-      await gallery.save();
-      res.status(200).json({ message: "Image deleted successfully", gallery });
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-  };
+  //     await gallery.save();
+  //     res.status(200).json({ message: "Image deleted successfully", gallery });
+  //   } catch (error) {
+  //     res.status(500).json({ error: error.message });
+  //   }
+  // };
   
 
 // Update isDelete status
+
+
+const deleteGalleryImageImage = async (req, res) => {
+  try {
+      const { id } = req.params;
+      const { imagePath } = req.body; // The image URL to delete
+
+      const gallery = await GalleryImageDetailsWithImages.findByPk(id);
+      if (!gallery) {
+          return res.status(404).json({ message: "Gallery not found" });
+      }
+
+      // Ensure gallery_images is always an array
+      let images = [];
+      if (typeof gallery.gallery_images === "string") {
+          try {
+              images = JSON.parse(gallery.gallery_images);
+          } catch (error) {
+              return res.status(500).json({ message: "Error parsing gallery images" });
+          }
+      } else if (Array.isArray(gallery.gallery_images)) {
+          images = gallery.gallery_images;
+      }
+
+      // Normalize the imagePath format to match stored paths
+      const normalizedImagePath = imagePath.startsWith("/")
+          ? imagePath.substring(1) // Remove leading slash if present
+          : imagePath;
+
+      // Check if the image exists in the gallery
+      if (!images.includes(normalizedImagePath)) {
+          return res.status(400).json({ message: "Image not found in gallery" });
+      }
+
+      // Remove the image from the array
+      gallery.gallery_images = images.filter((img) => img !== normalizedImagePath);
+
+      // Construct the correct file path for deletion
+      const fullPath = path.join(__dirname, "..", "uploads/galleryImages", path.basename(normalizedImagePath));
+
+      // Check if the file exists before attempting to delete it
+      if (fs.existsSync(fullPath)) {
+          fs.unlinkSync(fullPath); // Delete file
+      }
+
+      // Save the updated gallery entry
+      await gallery.save();
+
+      res.status(200).json({ message: "Image deleted successfully", gallery });
+  } catch (error) {
+      res.status(500).json({ error: error.message || "Something went wrong" });
+  }
+};
+
 const updateIsDelete = async (req, res) => {
   try {
     const { id } = req.params;
