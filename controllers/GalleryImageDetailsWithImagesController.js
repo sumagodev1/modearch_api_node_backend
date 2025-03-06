@@ -165,28 +165,38 @@ const updateGalleryImageImages = async (req, res) => {
 const deleteGalleryImageImage = async (req, res) => {
   try {
       const { id } = req.params;
-      const { imagePath } = req.body; // The image URL to delete
+      const { imagePath } = req.body; // Image URL sent from the frontend
 
+      // Fetch gallery from DB
       const gallery = await GalleryImageDetailsWithImages.findByPk(id);
+
       if (!gallery) {
           return res.status(404).json({ message: "Gallery not found" });
       }
 
-      // Ensure gallery_images is always an array
+      console.log("Raw gallery_images from DB:", gallery.gallery_images);
+
+      // Ensure gallery_images is an array
       let images = [];
       if (typeof gallery.gallery_images === "string") {
+          // If stored as a JSON string, parse it
           try {
               images = JSON.parse(gallery.gallery_images);
           } catch (error) {
+              console.error("JSON Parse Error:", error);
               return res.status(500).json({ message: "Error parsing gallery images" });
           }
       } else if (Array.isArray(gallery.gallery_images)) {
           images = gallery.gallery_images;
+      } else {
+          return res.status(500).json({ message: "Invalid data format for gallery_images" });
       }
 
-      // Normalize the imagePath format to match stored paths
+      console.log("Parsed images array:", images);
+
+      // Normalize imagePath (remove leading slash if present)
       const normalizedImagePath = imagePath.startsWith("/")
-          ? imagePath.substring(1) // Remove leading slash if present
+          ? imagePath.substring(1)
           : imagePath;
 
       // Check if the image exists in the gallery
@@ -195,24 +205,31 @@ const deleteGalleryImageImage = async (req, res) => {
       }
 
       // Remove the image from the array
-      gallery.gallery_images = images.filter((img) => img !== normalizedImagePath);
+      const updatedImages = images.filter((img) => img !== normalizedImagePath);
 
-      // Construct the correct file path for deletion
+      // Construct file path for deletion
       const fullPath = path.join(__dirname, "..", "uploads/galleryImages", path.basename(normalizedImagePath));
 
-      // Check if the file exists before attempting to delete it
+      // Check and delete the file if it exists
       if (fs.existsSync(fullPath)) {
-          fs.unlinkSync(fullPath); // Delete file
+          fs.unlinkSync(fullPath);
       }
 
-      // Save the updated gallery entry
+      // Save the updated images array back to DB
+      gallery.gallery_images = JSON.stringify(updatedImages); // Convert array back to JSON string
       await gallery.save();
 
-      res.status(200).json({ message: "Image deleted successfully", gallery });
+      res.status(200).json({
+          message: "Image deleted successfully",
+          gallery: { ...gallery.toJSON(), gallery_images: updatedImages } // Ensure correct format
+      });
+
   } catch (error) {
+      console.error("Error deleting image:", error);
       res.status(500).json({ error: error.message || "Something went wrong" });
   }
 };
+
 
 const updateIsDelete = async (req, res) => {
   try {
