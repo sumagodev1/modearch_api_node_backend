@@ -19,10 +19,10 @@ router.post(
 );
 
 // Get all GalleryImages
-router.get("/galleryImages", authenticateToken, getAllGalleryImages);
+router.get("/galleryImages", getAllGalleryImages);
 
 // Get a single GalleryImage by ID
-router.get("/galleryImages/:id", authenticateToken, getGalleryImageById);
+router.get("/galleryImages/:id", getGalleryImageById);
 
 router.put("/galleryImages/:id/is-active", authenticateToken, updateIsActive);
 
