@@ -45,7 +45,7 @@ router.post(
 router.get("/projects", getAllProjects);
 
 // Get a single project by ID
-router.get("/projects/:id", getProjectById);
+router.get("/projects/:project_name_id", getProjectById);
 
 router.put("/projects/:id/is-active", authenticateToken, updateIsActive);
 

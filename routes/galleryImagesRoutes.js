@@ -22,7 +22,7 @@ router.post(
 router.get("/galleryImages", getAllGalleryImages);
 
 // Get a single GalleryImage by ID
-router.get("/galleryImages/:id", getGalleryImageById);
+router.get("/galleryImages/:gallery_category_id", getGalleryImageById);
 
 router.put("/galleryImages/:id/is-active", authenticateToken, updateIsActive);
 

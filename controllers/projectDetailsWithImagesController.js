@@ -228,8 +228,14 @@ const getAllProjects = async (req, res) => {
 // Get single project by ID
 const getProjectById = async (req, res) => {
   try {
-    const { id } = req.params;
-    const project = await ProjectDetailsWithImages.findByPk(id);
+    // const { id } = req.params;
+    // const project = await ProjectDetailsWithImages.findByPk(id);
+
+    const { project_name_id  } = req.params; // Get project_name_id  from request parameters
+    const project = await ProjectDetailsWithImages.findOne({
+      where: { project_name_id  },  // Query by project_name_id 
+    });
+
 
     if (!project) {
       return res.status(404).json({ message: "Project not found" });
