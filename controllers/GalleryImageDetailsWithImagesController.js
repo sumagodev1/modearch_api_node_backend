@@ -2,12 +2,45 @@ const GalleryImageDetailsWithImages = require("../models/GalleryImageDetailsWith
 const fs = require("fs");
 const path = require("path");
 // Upload multiple images
+// const createGalleryImage = async (req, res) => {
+//   try {
+//     const { gallery_category_id, gallery_category } = req.body;
+
+//     // Get image file paths
+//     // const imagePaths = req.files.map((file) => `/uploads/${file.filename}`);
+//     const imagePaths = req.files.map(
+//       (file) => `uploads/galleryImages/${file.filename}`
+//     );
+
+//     // Create gallery entry in the database
+//     const gallery = await GalleryImageDetailsWithImages.create({
+//       gallery_category_id,
+//       gallery_category,
+//       gallery_images: imagePaths,
+//     });
+
+//     res.status(201).json({ message: "gallery created successfully!", gallery });
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// };
+
 const createGalleryImage = async (req, res) => {
   try {
     const { gallery_category_id, gallery_category } = req.body;
 
+    // Check if gallery_category already exists
+    const existingCategory = await GalleryImageDetailsWithImages.findOne({
+      where: { gallery_category },
+    });
+
+    if (existingCategory) {
+      return res.status(400).json({
+        message: "Gallery category already exists. Please choose another name.",
+      });
+    }
+
     // Get image file paths
-    // const imagePaths = req.files.map((file) => `/uploads/${file.filename}`);
     const imagePaths = req.files.map(
       (file) => `uploads/galleryImages/${file.filename}`
     );
@@ -19,11 +52,15 @@ const createGalleryImage = async (req, res) => {
       gallery_images: imagePaths,
     });
 
-    res.status(201).json({ message: "gallery created successfully!", gallery });
+    res.status(201).json({
+      message: "Gallery created successfully!",
+      gallery,
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 // Get all gallerys
 const getAllGalleryImages = async (req, res) => {
@@ -112,26 +149,77 @@ const updateIsActive = async (req, res) => {
   }
 };
 
+// const updateGalleryImageImages = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const { gallery_category_id, gallery_category } = req.body; // Get the updated fields from the body
+
+//     const gallery = await GalleryImageDetailsWithImages.findByPk(id);
+//     if (!gallery) {
+//       return res.status(404).json({ message: "gallery not found" });
+//     }
+
+//     // Parse existing images properly (ensure it's always an array)
+//     let existingImages = gallery.gallery_images;
+//     if (typeof existingImages === "string") {
+//       existingImages = JSON.parse(existingImages); // Fix for string issue
+//     }
+//     if (!Array.isArray(existingImages)) {
+//       existingImages = [];
+//     }
+
+//     // Get new image paths from uploaded files
+//     let newImages = req.files.map(
+//       (file) => `uploads/galleryImages/${file.filename}`
+//     );
+
+//     // Merge old and new images
+//     const updatedImages = [...existingImages, ...newImages];
+
+//     // Update the gallery fields
+//     gallery.gallery_images = updatedImages;
+//     gallery.gallery_category_id = gallery_category_id; // Update the category ID
+//     gallery.gallery_category = gallery_category; // Update the category name
+
+//     await gallery.save();
+
+//     res.status(200).json({ message: "Gallery updated successfully", gallery });
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// };
+
 const updateGalleryImageImages = async (req, res) => {
   try {
     const { id } = req.params;
-    const { gallery_category_id, gallery_category } = req.body; // Get the updated fields from the body
+    const { gallery_category_id, gallery_category } = req.body;
 
     const gallery = await GalleryImageDetailsWithImages.findByPk(id);
     if (!gallery) {
-      return res.status(404).json({ message: "gallery not found" });
+      return res.status(404).json({ message: "Gallery not found" });
     }
 
-    // Parse existing images properly (ensure it's always an array)
+    // Check if another gallery category with the same name exists
+    const existingCategory = await GalleryImageDetailsWithImages.findOne({
+      where: { gallery_category },
+    });
+
+    if (existingCategory && existingCategory.id !== parseInt(id)) {
+      return res.status(400).json({
+        message: "Gallery category already exists. Please choose another name.",
+      });
+    }
+
+    // Ensure existingImages is always an array
     let existingImages = gallery.gallery_images;
     if (typeof existingImages === "string") {
-      existingImages = JSON.parse(existingImages); // Fix for string issue
+      existingImages = JSON.parse(existingImages);
     }
     if (!Array.isArray(existingImages)) {
       existingImages = [];
     }
 
-    // Get new image paths from uploaded files
+    // Get new image paths
     let newImages = req.files.map(
       (file) => `uploads/galleryImages/${file.filename}`
     );
@@ -141,16 +229,20 @@ const updateGalleryImageImages = async (req, res) => {
 
     // Update the gallery fields
     gallery.gallery_images = updatedImages;
-    gallery.gallery_category_id = gallery_category_id; // Update the category ID
-    gallery.gallery_category = gallery_category; // Update the category name
+    gallery.gallery_category_id = gallery_category_id;
+    gallery.gallery_category = gallery_category;
 
     await gallery.save();
 
-    res.status(200).json({ message: "Gallery updated successfully", gallery });
+    res.status(200).json({
+      message: "Gallery updated successfully",
+      gallery,
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 // const deleteGalleryImageImage = async (req, res) => {
 //   try {

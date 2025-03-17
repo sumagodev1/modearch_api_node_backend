@@ -1,11 +1,46 @@
 const apiResponse = require("../helper/apiResponse");
 const ProjectName = require("../models/ProjectName");
+// exports.addProjectName = async (req, res) => {
+//   try {
+//     const { project_name, desc } = req.body;
+//     const { project_category } = req.body;
+//     const { project_category_id } = req.body;
+
+//     const ProjectName1 = await ProjectName.create({
+//       project_name,
+//       project_category,
+//       project_category_id,
+//       isActive: true,
+//       isDelete: false,
+//     });
+//     return apiResponse.successResponseWithData(
+//       res,
+//       "Project Name added successfully",
+//       ProjectName1
+//     );
+//   } catch (error) {
+//     console.error("Add Project Name failed", error);
+//     return apiResponse.ErrorResponse(res, "Add Project Name failed");
+//   }
+// };
+
 exports.addProjectName = async (req, res) => {
   try {
-    const { project_name, desc } = req.body;
-    const { project_category } = req.body;
-    const { project_category_id } = req.body;
+    const { project_name, project_category, project_category_id } = req.body;
 
+    // Check if project_name already exists within the same project_category
+    const existingProject = await ProjectName.findOne({
+      where: { project_name, project_category },
+    });
+
+    if (existingProject) {
+      return apiResponse.ErrorResponse(
+        res,
+        "A project with this name already exists in the selected category."
+      );
+    }
+
+    // Create the project entry
     const ProjectName1 = await ProjectName.create({
       project_name,
       project_category,
@@ -13,6 +48,7 @@ exports.addProjectName = async (req, res) => {
       isActive: true,
       isDelete: false,
     });
+
     return apiResponse.successResponseWithData(
       res,
       "Project Name added successfully",
@@ -23,6 +59,7 @@ exports.addProjectName = async (req, res) => {
     return apiResponse.ErrorResponse(res, "Add Project Name failed");
   }
 };
+
 
 // exports.updateProjectName = async (req, res) => {
 //   try {
@@ -52,24 +89,80 @@ exports.addProjectName = async (req, res) => {
 //   }
 // };
 
+// exports.updateProjectName = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const { project_name, project_category, project_category_id } = req.body; // Extract all fields correctly
+
+//     const project = await ProjectName.findByPk(id);
+//     if (!project) {
+//       return apiResponse.notFoundResponse(res, "Project Name not found");
+//     }
+
+//     // Ensure these fields exist in the model
+//     project.project_name = project_name;
+//     if (project.project_category !== undefined) {
+//       project.project_category = project_category;
+//     }
+//     if (project.project_category_id !== undefined) {
+//       project.project_category_id = project_category_id;
+//     }
+
+//     await project.save();
+
+//     return apiResponse.successResponseWithData(
+//       res,
+//       "Project Name updated successfully",
+//       project
+//     );
+//   } catch (error) {
+//     console.error("Update Project Name failed", error);
+//     return apiResponse.ErrorResponse(res, "Update Project Name failed");
+//   }
+// };
+
 exports.updateProjectName = async (req, res) => {
   try {
     const { id } = req.params;
-    const { project_name, project_category, project_category_id } = req.body; // Extract all fields correctly
+    const { project_name, project_category, project_category_id } = req.body;
 
     const project = await ProjectName.findByPk(id);
     if (!project) {
       return apiResponse.notFoundResponse(res, "Project Name not found");
     }
 
-    // Ensure these fields exist in the model
+    // Allow update if the project_name and category remain unchanged
+    if (
+      project.project_name === project_name &&
+      project.project_category === project_category
+    ) {
+      return apiResponse.successResponseWithData(
+        res,
+        "No changes detected, but update successful",
+        project
+      );
+    }
+
+    // Prevent duplicate project_name in the same project_category (except for the same record)
+    const existingProject = await ProjectName.findOne({
+      where: {
+        project_name,
+        project_category,
+        // id: { [Op.ne]: id }, 
+      },
+    });
+
+    if (existingProject) {
+      return apiResponse.ErrorResponse(
+        res,
+        "A project with this name already exists in the selected category."
+      );
+    }
+
+    // Proceed with update
     project.project_name = project_name;
-    if (project.project_category !== undefined) {
-      project.project_category = project_category;
-    }
-    if (project.project_category_id !== undefined) {
-      project.project_category_id = project_category_id;
-    }
+    project.project_category = project_category;
+    project.project_category_id = project_category_id;
 
     await project.save();
 

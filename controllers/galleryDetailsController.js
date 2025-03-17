@@ -4,13 +4,19 @@ const GalleryDetails = require('../models/GalleryDetails')
 exports.addGalleryDetails = async (req, res) => {
   try {
     const { gallery_category, desc } = req.body;
+
+    const existinggallery_category = await GalleryDetails.findOne({ gallery_category });
+    if (existinggallery_category) {
+      return apiResponse.ErrorResponse(res, "Gallery category already exists");
+    }
+
     const img = req.file ? req.file.path : null;
 
     const GalleryDetails1 = await GalleryDetails.create({ img, gallery_category, isActive: true, isDelete: false });
-    return apiResponse.successResponseWithData(res, 'Project Details added successfully', GalleryDetails1);
+    return apiResponse.successResponseWithData(res, 'Gallery category added successfully', GalleryDetails1);
   } catch (error) {
-    console.error('Add Project Details failed', error);
-    return apiResponse.ErrorResponse(res, 'Add Project Details failed');
+    console.error('Add gallery category failed', error);
+    return apiResponse.ErrorResponse(res, 'Add gallery category failed');
   }
 };
 
@@ -22,17 +28,27 @@ exports.updateGalleryDetails = async (req, res) => {
 
     const GalleryDetails1 = await GalleryDetails.findByPk(id);
     if (!GalleryDetails1) {
-      return apiResponse.notFoundResponse(res, 'Project Details not found');
+      return apiResponse.notFoundResponse(res, 'Gallery category not found');
     }
+
+        // Check if another category already has the same title
+        const existinggallery_category = await GalleryDetails.findOne({ where: { gallery_category } });
+        if (existinggallery_category && existinggallery_category.id !== parseInt(id)) {
+          return apiResponse.validationErrorWithData(
+            res,
+            "Gallery category already exists",
+            {}
+          );
+        }
 
     GalleryDetails1.img = img || GalleryDetails1.img;
     GalleryDetails1.gallery_category = gallery_category;
     await GalleryDetails1.save();
 
-    return apiResponse.successResponseWithData(res, 'Project Details updated successfully', GalleryDetails1);
+    return apiResponse.successResponseWithData(res, 'Gallery category updated successfully', GalleryDetails1);
   } catch (error) {
-    console.error('Update Project Details failed', error);
-    return apiResponse.ErrorResponse(res, 'Update Project Details failed');
+    console.error('Update gallery category failed', error);
+    return apiResponse.ErrorResponse(res, 'Update gallery category failed');
   }
 };
 
@@ -51,10 +67,10 @@ exports.getGalleryDetails = async (req, res) => {
       };
     });
 
-    return apiResponse.successResponseWithData(res, 'Project Details retrieved successfully', GalleryDetailsWithBaseUrl);
+    return apiResponse.successResponseWithData(res, 'Gallery category retrieved successfully', GalleryDetailsWithBaseUrl);
   } catch (error) {
-    console.error('Get Project Details failed', error);
-    return apiResponse.ErrorResponse(res, 'Get Project Details failed');
+    console.error('Get Gallery category failed', error);
+    return apiResponse.ErrorResponse(res, 'Get Gallery category failed');
   }
 };
 
@@ -64,16 +80,16 @@ exports.isActiveStatus = async (req, res) => {
     const GalleryDetails1 = await GalleryDetails.findByPk(id);
 
     if (!GalleryDetails1) {
-      return apiResponse.notFoundResponse(res, 'Project Details not found');
+      return apiResponse.notFoundResponse(res, 'Gallery category not found');
     }
 
     GalleryDetails1.isActive = !GalleryDetails1.isActive;
     await GalleryDetails1.save();
 
-    return apiResponse.successResponseWithData(res, 'Project Details status updated successfully', GalleryDetails1);
+    return apiResponse.successResponseWithData(res, 'Gallery category status updated successfully', GalleryDetails1);
   } catch (error) {
-    console.error('Toggle Project Details status failed', error);
-    return apiResponse.ErrorResponse(res, 'Toggle Project Details status failed');
+    console.error('Toggle Gallery category status failed', error);
+    return apiResponse.ErrorResponse(res, 'Toggle Gallery category status failed');
   }
 };
 
@@ -83,15 +99,15 @@ exports.isDeleteStatus = async (req, res) => {
     const GalleryDetails1 = await GalleryDetails.findByPk(id);
 
     if (!GalleryDetails1) {
-      return apiResponse.notFoundResponse(res, 'Project Details not found');
+      return apiResponse.notFoundResponse(res, 'Gallery category not found');
     }
 
     GalleryDetails1.isDelete = !GalleryDetails1.isDelete;
     await GalleryDetails1.save();
 
-    return apiResponse.successResponseWithData(res, 'Project Details delete status updated successfully', GalleryDetails1);
+    return apiResponse.successResponseWithData(res, 'Gallery category delete status updated successfully', GalleryDetails1);
   } catch (error) {
-    console.error('Toggle Project Details delete status failed', error);
-    return apiResponse.ErrorResponse(res, 'Toggle Project Details delete status failed');
+    console.error('Toggle Gallery category delete status failed', error);
+    return apiResponse.ErrorResponse(res, 'Toggle Gallery category delete status failed');
   }
 };

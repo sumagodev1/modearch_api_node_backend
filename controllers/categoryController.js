@@ -1,18 +1,45 @@
 const apiResponse = require("../helper/apiResponse");
 const Category = require("../models/Category");
+// exports.addCategory = async (req, res) => {
+//   try {
+//     const { title, desc } = req.body;
+
+//     const Category1 = await Category.create({
+//       title,
+//       isActive: true,
+//       isDelete: false,
+//     });
+//     return apiResponse.successResponseWithData(
+//       res,
+//       "Category added successfully",
+//       Category1
+//     );
+//   } catch (error) {
+//     console.error("Add Category failed", error);
+//     return apiResponse.ErrorResponse(res, "Add Category failed");
+//   }
+// };
+
 exports.addCategory = async (req, res) => {
   try {
-    const { title, desc } = req.body;
+    const { title } = req.body;
 
-    const Category1 = await Category.create({
+    // Check if the category already exists
+    const existingCategory = await Category.findOne({ title });
+    if (existingCategory) {
+      return apiResponse.ErrorResponse(res, "Category already exists");
+    }
+
+    const newCategory = await Category.create({
       title,
       isActive: true,
       isDelete: false,
     });
+
     return apiResponse.successResponseWithData(
       res,
       "Category added successfully",
-      Category1
+      newCategory
     );
   } catch (error) {
     console.error("Add Category failed", error);
@@ -20,23 +47,59 @@ exports.addCategory = async (req, res) => {
   }
 };
 
+// exports.updateCategory = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const { title, desc } = req.body;
+
+//     const Category1 = await Category.findByPk(id);
+//     if (!Category1) {
+//       return apiResponse.notFoundResponse(res, "Category not found");
+//     }
+
+//     Category1.title = title;
+//     await Category1.save();
+
+//     return apiResponse.successResponseWithData(
+//       res,
+//       "Category updated successfully",
+//       Category1
+//     );
+//   } catch (error) {
+//     console.error("Update Category failed", error);
+//     return apiResponse.ErrorResponse(res, "Update Category failed");
+//   }
+// };
+
 exports.updateCategory = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, desc } = req.body;
+    const { title, desc } = req.body; // `desc` refers to sorting order
 
-    const Category1 = await Category.findByPk(id);
-    if (!Category1) {
+    const category = await Category.findByPk(id);
+    if (!category) {
       return apiResponse.notFoundResponse(res, "Category not found");
     }
 
-    Category1.title = title;
-    await Category1.save();
+    // Check if another category already has the same title
+    const existingCategory = await Category.findOne({ where: { title } });
+    if (existingCategory && existingCategory.id !== parseInt(id)) {
+      return apiResponse.validationErrorWithData(
+        res,
+        "Category with this title already exists",
+        {}
+      );
+    }
+
+    // Update category if title is unique
+    category.title = title;
+    category.desc = desc; // Ensure sorting order is updated
+    await category.save();
 
     return apiResponse.successResponseWithData(
       res,
       "Category updated successfully",
-      Category1
+      category
     );
   } catch (error) {
     console.error("Update Category failed", error);
