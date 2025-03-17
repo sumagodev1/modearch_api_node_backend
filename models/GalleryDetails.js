@@ -8,6 +8,7 @@ const GalleryDetails = sequelize.define('gallery_deatils', {
   },
   gallery_category: {
     type: DataTypes.STRING,
+    unique: true,
     allowNull: false,
   },
   isActive: {

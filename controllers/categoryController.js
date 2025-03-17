@@ -24,12 +24,32 @@ exports.addCategory = async (req, res) => {
   try {
     const { title } = req.body;
 
-    // Check if the category already exists
-    const existingCategory = await Category.findOne({ title });
-    if (existingCategory) {
-      return apiResponse.ErrorResponse(res, "Category already exists");
+    // Check if the title is already taken by an active category
+    const existingActiveCategory = await Category.findOne({ where: { title, isDelete: false } });
+
+    if (existingActiveCategory) {
+      return apiResponse.ErrorResponse(res, "Category with this title already exists.");
     }
 
+    // Check if the title was deleted earlier, if yes, reactivate it by adding a new record
+    const existingDeletedCategory = await Category.findOne({ where: { title, isDelete: true } });
+
+    if (existingDeletedCategory) {
+      // If the title is marked as deleted, create a new category with the same title but isDelete: false
+      const newCategory = await Category.create({
+        title,
+        isActive: true,
+        isDelete: false, // Mark as active
+      });
+
+      return apiResponse.successResponseWithData(
+        res,
+        "Category re-added successfully",
+        newCategory
+      );
+    }
+
+    // If no deleted category, create a new active category
     const newCategory = await Category.create({
       title,
       isActive: true,
@@ -46,6 +66,7 @@ exports.addCategory = async (req, res) => {
     return apiResponse.ErrorResponse(res, "Add Category failed");
   }
 };
+
 
 // exports.updateCategory = async (req, res) => {
 //   try {
@@ -71,19 +92,70 @@ exports.addCategory = async (req, res) => {
 //   }
 // };
 
+// exports.updateCategory = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const { title, desc } = req.body; // `desc` refers to sorting order
+
+//     // Fetch the category by ID
+//     const category = await Category.findByPk(id);
+//     if (!category) {
+//       return apiResponse.notFoundResponse(res, "Category not found");
+//     }
+
+//     // Check if another category already has the same title and it's not the current one
+//     const existingCategory = await Category.findOne({ 
+//       where: { 
+//         title, 
+//         isDelete: false // Ensure the category is not deleted
+//       }
+//     });
+
+//     if (existingCategory && existingCategory.id !== parseInt(id)) {
+//       return apiResponse.validationErrorWithData(
+//         res,
+//         "Category with this title already exists",
+//         {}
+//       );
+//     }
+
+//     // Update category if title is unique
+//     category.title = title;
+//     category.desc = desc; // Update the sorting order (description)
+//     await category.save();
+
+//     return apiResponse.successResponseWithData(
+//       res,
+//       "Category updated successfully",
+//       category
+//     );
+//   } catch (error) {
+//     console.error("Update Category failed", error);
+//     return apiResponse.ErrorResponse(res, "Update Category failed");
+//   }
+// };
+
+const sequelize = require('../config/database'); // Import the sequelize instance
+const ProjectDetails = require('../models/ProjectDetails');
+const ProjectDetailsWithImages = require("../models/ProjectDetailsWithImages");
+
 exports.updateCategory = async (req, res) => {
+  const transaction = await sequelize.transaction(); // Start a transaction
   try {
     const { id } = req.params;
     const { title, desc } = req.body; // `desc` refers to sorting order
 
-    const category = await Category.findByPk(id);
+    // Find category in the Category table
+    const category = await Category.findByPk(id, { transaction });
     if (!category) {
+      await transaction.rollback();
       return apiResponse.notFoundResponse(res, "Category not found");
     }
 
-    // Check if another category already has the same title
-    const existingCategory = await Category.findOne({ where: { title } });
+    // Check if another category already has the same title in the Category table
+    const existingCategory = await Category.findOne({ where: { title }, transaction });
     if (existingCategory && existingCategory.id !== parseInt(id)) {
+      await transaction.rollback();
       return apiResponse.validationErrorWithData(
         res,
         "Category with this title already exists",
@@ -91,10 +163,24 @@ exports.updateCategory = async (req, res) => {
       );
     }
 
-    // Update category if title is unique
+    // Update the Category table
     category.title = title;
-    category.desc = desc; // Ensure sorting order is updated
-    await category.save();
+    category.desc = desc; // Update description (sorting order or other field)
+    await category.save({ transaction });
+
+    // Update ProjectDetails table where project_category_id matches the Category ID
+    await ProjectDetails.update(
+      { project_category_id: id, project_category: title }, // Update the related fields
+      { where: { project_category_id: id }, transaction }
+    );
+
+    // Update ProjectDetailsWithImages table where project_category_id matches the Category ID
+    await ProjectDetailsWithImages.update(
+      { project_category: title }, // Update project_category in the second table
+      { where: { project_category_id: id }, transaction }
+    );
+
+    await transaction.commit(); // Commit transaction if everything is successful
 
     return apiResponse.successResponseWithData(
       res,
@@ -102,6 +188,7 @@ exports.updateCategory = async (req, res) => {
       category
     );
   } catch (error) {
+    await transaction.rollback(); // Rollback in case of error
     console.error("Update Category failed", error);
     return apiResponse.ErrorResponse(res, "Update Category failed");
   }

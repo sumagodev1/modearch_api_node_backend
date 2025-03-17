@@ -34,12 +34,12 @@ const ProjectDetailsWithImages = sequelize.define(
     project_category_id: { type: DataTypes.STRING, allowNull: false },
     project_category: { type: DataTypes.STRING, allowNull: false },
     project_name_id: { type: DataTypes.STRING, allowNull: false },
-    project_name: { type: DataTypes.STRING, allowNull: false },
-    project_location: { type: DataTypes.STRING, allowNull: false },
-    project_info: { type: DataTypes.STRING, allowNull: false },
-    project_year_of_completion: { type: DataTypes.STRING, allowNull: false },
-    project_total_tonnage: { type: DataTypes.STRING, allowNull: false },
-    project_status: { type: DataTypes.STRING, allowNull: false },
+    project_name: { type: DataTypes.STRING, allowNull: false, unique: true, },
+    // project_location: { type: DataTypes.STRING, allowNull: false },
+    // project_info: { type: DataTypes.STRING, allowNull: false },
+    // project_year_of_completion: { type: DataTypes.STRING, allowNull: false },
+    // project_total_tonnage: { type: DataTypes.STRING, allowNull: false },
+    // project_status: { type: DataTypes.STRING, allowNull: false },
     project_images: { type: DataTypes.JSON, allowNull: true, defaultValue: [] }, // Store images as an array
 
     isActive: { type: DataTypes.BOOLEAN, defaultValue: false },

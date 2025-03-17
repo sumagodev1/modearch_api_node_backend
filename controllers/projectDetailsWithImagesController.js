@@ -177,6 +177,40 @@ const ProjectDetailsWithImages = require("../models/ProjectDetailsWithImages");
 const fs = require("fs");
 const path = require("path");
 // Upload multiple images
+
+// const createProject = async (req, res) => {
+//   try {
+//     const {
+//       project_category_id,
+//       project_category,
+//       project_name_id,
+//       project_name,
+//     } = req.body;
+
+//     // Get image file paths
+//     // const imagePaths = req.files.map((file) => `/uploads/${file.filename}`);
+//     const imagePaths = req.files.map((file) => `uploads/projectDetailsWithImages/${file.filename}`);
+
+//     // Create project entry in the database
+//     const project = await ProjectDetailsWithImages.create({
+//       project_category_id,
+//       project_category,
+//       project_name_id,
+//       project_name,
+//       // project_location,
+//       // project_info,
+//       // project_year_of_completion,
+//       // project_total_tonnage,
+//       // project_status,
+//       project_images: imagePaths,
+//     });
+
+//     res.status(201).json({ message: "Project created successfully!", project });
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// };
+
 const createProject = async (req, res) => {
   try {
     const {
@@ -184,28 +218,32 @@ const createProject = async (req, res) => {
       project_category,
       project_name_id,
       project_name,
-      project_location,
-      project_info,
-      project_year_of_completion,
-      project_total_tonnage,
-      project_status,
     } = req.body;
 
     // Get image file paths
-    // const imagePaths = req.files.map((file) => `/uploads/${file.filename}`);
     const imagePaths = req.files.map((file) => `uploads/projectDetailsWithImages/${file.filename}`);
 
-    // Create project entry in the database
+    // Check if the project name already exists in the same category and is not deleted
+    const existingProject = await ProjectDetailsWithImages.findOne({
+      where: {
+        project_category,
+        project_name,
+        isDelete: false,  // Ensure that it is not a deleted project
+      },
+    });
+
+    if (existingProject) {
+      return res.status(400).json({
+        message: `Project with the name "${project_name}" already exists for this category.`,
+      });
+    }
+
+    // Create a new project entry in the database
     const project = await ProjectDetailsWithImages.create({
       project_category_id,
       project_category,
       project_name_id,
       project_name,
-      project_location,
-      project_info,
-      project_year_of_completion,
-      project_total_tonnage,
-      project_status,
       project_images: imagePaths,
     });
 
@@ -214,6 +252,7 @@ const createProject = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 // Get all projects
 const getAllProjects = async (req, res) => {
@@ -267,6 +306,72 @@ const updateIsActive = async (req, res) => {
   }
 };
 
+const updateProjectImages = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const project = await ProjectDetailsWithImages.findByPk(id);
+
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
+    // Extract fields from request body
+    const {
+      project_category_id,
+      project_category,
+      project_name_id,
+      project_name,
+    } = req.body;
+
+    // Check if another project in the same category has the same name and is not deleted
+    if (project_name) {
+      const existingProject = await ProjectDetailsWithImages.findOne({
+        where: {
+          project_category_id,
+          project_name,
+          isDelete: false, // Ensure the project is not deleted
+        },
+      });
+
+      if (existingProject && existingProject.id !== parseInt(id)) {
+        return res.status(400).json({
+          message: `Project with the name '${project_name}' already exists in this category.`,
+        });
+      }
+    }
+
+    // Parse existing images properly (ensure it's always an array)
+    let existingImages = project.project_images;
+    if (typeof existingImages === "string") {
+      existingImages = JSON.parse(existingImages); // Fix for string issue
+    }
+    if (!Array.isArray(existingImages)) {
+      existingImages = [];
+    }
+
+    // Get new image paths from uploaded files
+    let newImages = req.files ? req.files.map((file) => `uploads/projectDetailsWithImages/${file.filename}`) : [];
+
+    // Merge old and new images
+    const updatedImages = [...existingImages, ...newImages];
+
+    // Update project fields
+    project.project_category_id = project_category_id || project.project_category_id;
+    project.project_category = project_category || project.project_category;
+    project.project_name_id = project_name_id || project.project_name_id;
+    project.project_name = project_name || project.project_name;
+    project.project_images = updatedImages;
+
+    // Save the updated project
+    await project.save();
+
+    res.status(200).json({ message: "Project updated successfully", project });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
 // const updateProjectImages = async (req, res) => {
 //     try {
 //       const { id } = req.params;
@@ -301,62 +406,53 @@ const updateIsActive = async (req, res) => {
 //     }
 //   };
   
-const updateProjectImages = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const project = await ProjectDetailsWithImages.findByPk(id);
+// const updateProjectImages = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const project = await ProjectDetailsWithImages.findByPk(id);
 
-    if (!project) {
-      return res.status(404).json({ message: "Project not found" });
-    }
+//     if (!project) {
+//       return res.status(404).json({ message: "Project not found" });
+//     }
 
-    // Extract fields from request body
-    const {
-      project_category_id,
-      project_category,
-      project_name_id,
-      project_name,
-      project_location,
-      project_info,
-      project_year_of_completion,
-      project_total_tonnage,
-      project_status,
-    } = req.body;
+//     // Extract fields from request body
+//     const {
+//       project_category_id,
+//       project_category,
+//       project_name_id,
+//       project_name,
+//     } = req.body;
 
-    // Parse existing images properly (ensure it's always an array)
-    let existingImages = project.project_images;
-    if (typeof existingImages === "string") {
-      existingImages = JSON.parse(existingImages); // Fix for string issue
-    }
-    if (!Array.isArray(existingImages)) {
-      existingImages = [];
-    }
+//     // Parse existing images properly (ensure it's always an array)
+//     let existingImages = project.project_images;
+//     if (typeof existingImages === "string") {
+//       existingImages = JSON.parse(existingImages); // Fix for string issue
+//     }
+//     if (!Array.isArray(existingImages)) {
+//       existingImages = [];
+//     }
 
-    // Get new image paths from uploaded files
-    let newImages = req.files ? req.files.map((file) => `uploads/projectDetailsWithImages/${file.filename}`) : [];
+//     // Get new image paths from uploaded files
+//     let newImages = req.files ? req.files.map((file) => `uploads/projectDetailsWithImages/${file.filename}`) : [];
 
-    // Merge old and new images
-    const updatedImages = [...existingImages, ...newImages];
+//     // Merge old and new images
+//     const updatedImages = [...existingImages, ...newImages];
 
-    // Update project fields
-    project.project_category_id = project_category_id || project.project_category_id;
-    project.project_category = project_category || project.project_category;
-    project.project_name_id = project_name_id || project.project_name_id;
-    project.project_name = project_name || project.project_name;
-    project.project_location = project_location || project.project_location;
-    project.project_info = project_info || project.project_info;
-    project.project_year_of_completion = project_year_of_completion || project.project_year_of_completion;
-    project.project_total_tonnage = project_total_tonnage || project.project_total_tonnage;
-    project.project_status = project_status || project.project_status;
-    project.project_images = updatedImages;
+//     // Update project fields
+//     project.project_category_id = project_category_id || project.project_category_id;
+//     project.project_category = project_category || project.project_category;
+//     project.project_name_id = project_name_id || project.project_name_id;
+//     project.project_name = project_name || project.project_name;
+    
+//     project.project_images = updatedImages;
 
-    await project.save();
+//     await project.save();
 
-    res.status(200).json({ message: "Project updated successfully", project });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+//     res.status(200).json({ message: "Project updated successfully", project });
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// };
   
   const deleteProjectImage = async (req, res) => {
     try {
