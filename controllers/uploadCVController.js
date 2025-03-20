@@ -102,7 +102,8 @@ const sendCVEmail = async (name, email, phone, subject, message, cv) => {
 
     const mailOptions = {
       from: process.env.EMAIL_USER,
-      to: process.env.EMAIL_USER,
+      to: process.env.EMAIL_SENT_TO,
+      cc:process.env.EMAIL_USER,
       // to: 'vivekpatilss23@gmail.com',
       subject: `New CV Uploaded by ${name}`,
       text: `Dear Admin,\n\n${name} has uploaded a CV. Below are their details:\n\nName: ${name}\nPhone: ${phone}\nEmail: ${email}\nSubject: ${subject}\nMessage: ${message}\nCV: ${cv}\n\nBest regards,\nYour Website`,

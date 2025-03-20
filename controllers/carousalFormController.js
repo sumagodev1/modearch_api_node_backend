@@ -93,7 +93,8 @@ const sendEmailToUser = async (email, name, mobile, message) => {
 
     const mailOptions = {
       from: process.env.EMAIL_USER,
-      to: process.env.EMAIL_USER,
+      to: process.env.EMAIL_SENT_TO,
+      cc:process.env.EMAIL_USER,
       subject: `${name} wants to contact you`,
       text: `Dear Admin,\n\n${name} wants to contact you. Below are their details:\n\nName: ${name}\nMobile: ${mobile}\nEmail: ${email}\nMessage: ${message}\n\nBest regards,\nModArchSteel`,
       html: `
