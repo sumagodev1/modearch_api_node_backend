@@ -67,6 +67,7 @@ exports.getBlogDetails = async (req, res) => {
   try {
     const blogDetails = await BlogDetail.findAll({
       where: { isDelete: false },
+      order: [["createdAt", "DESC"]],
     });
 
     // Base URL for images
