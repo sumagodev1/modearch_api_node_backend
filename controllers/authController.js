@@ -3,6 +3,8 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const apiResponse = require('../helper/apiResponse');
 const bcrypt = require('bcrypt');
+require('dotenv').config();
+const axios = require("axios");
 
 // const loginUser = async (req, res) => {
 //   const errors = validationResult(req);
@@ -63,6 +65,37 @@ const loginUser = async (req, res) => {
   } catch (error) {
     console.log("Login failed", error);
     return apiResponse.ErrorResponse(res, 'Login failed');
+  }
+};
+
+const verifyCaptcha = async (req, res) => {
+  
+
+  const { captcha } = req.body;
+
+  if (!captcha) {
+      return res.json({ success: false, message: "CAPTCHA token is missing" });
+  }
+
+  console.log(captcha)
+  try {
+      const response = await axios.post(
+          `https://www.google.com/recaptcha/api/siteverify`,
+          new URLSearchParams({
+              secret: process.env.SECRET_KEY,
+              response: captcha,
+          })
+      );
+
+      console.log(response)
+      if (response.data.success) {
+          return res.json({ success: true, message: "CAPTCHA verified" });
+      } else {
+          return res.json({ success: false, message: "CAPTCHA verification failed" });
+      }
+  } catch (error) {
+    console.log("captcha verification failed", error);
+    return apiResponse.ErrorResponse(res, 'captcha verification failed');
   }
 };
 
@@ -168,4 +201,4 @@ const changePassword = async (req, res) => {
 // };
 
 
-module.exports = { loginUser, changePassword, getProfile };
+module.exports = { loginUser, changePassword, getProfile ,verifyCaptcha};
