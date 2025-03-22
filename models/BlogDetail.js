@@ -6,6 +6,10 @@ const BlogDetail = sequelize.define('BlogDetail', {
     type: DataTypes.STRING,
     allowNull: true,
   },
+  img2: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
   title: {
     type: DataTypes.STRING,
     allowNull: false,

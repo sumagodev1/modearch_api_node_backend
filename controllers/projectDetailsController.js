@@ -208,7 +208,7 @@ exports.updateProjectDetails = async (req, res) => {
 
     // Update the ProjectDetailsWithImages table where project_name_id matches the id
     await ProjectDetailsWithImages.update(
-      { project_name: project_name }, // Update project_name in ProjectDetailsWithImages table
+      { project_name: project_name, project_category:project_category, project_category_id:project_category_id }, // Update project_name in ProjectDetailsWithImages table
       { where: { project_name_id: id }, transaction }
     );
 

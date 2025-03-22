@@ -4,10 +4,15 @@ const apiResponse = require("../helper/apiResponse");
 exports.addBlogDetail = async (req, res) => {
   try {
     const { title, shortDesc, longDesc } = req.body;
-    const img = req.file ? req.file.path : null;
+    // const img = req.file ? req.file.path : null;
+    // const img2 = req.file ? req.file["img2"].path : null;
+
+    const img = req.files?.img ? req.files["img"][0].path : null;
+    const img2 = req.files?.img2 ? req.files["img2"][0].path : null;
 
     const blogDetail = await BlogDetail.create({
       img,
+      img2,
       title,
       shortDesc,
       longDesc,
@@ -30,7 +35,9 @@ exports.updateBlogDetail = async (req, res) => {
   try {
     const { id } = req.params;
     const { title, shortDesc, longDesc } = req.body;
-    const img = req.file ? req.file.path : null;
+    // const img = req.file ? req.file.path : null;
+    const img = req.files?.img ? req.files["img"][0].path : null;
+    const img2 = req.files?.img2 ? req.files["img2"][0].path : null;
 
     const blogDetail = await BlogDetail.findByPk(id);
     if (!blogDetail) {
@@ -38,6 +45,7 @@ exports.updateBlogDetail = async (req, res) => {
     }
 
     blogDetail.img = img || blogDetail.img;
+    blogDetail.img2 = img2 || blogDetail.img2;
     blogDetail.title = title;
     blogDetail.shortDesc = shortDesc;
     blogDetail.longDesc = longDesc;

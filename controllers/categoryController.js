@@ -194,36 +194,71 @@ exports.updateCategory = async (req, res) => {
   }
 };
 
+// exports.getCategory = async (req, res) => {
+//   try {
+//     const Category1 = await Category.findAll({
+//       where: { isDelete: false },
+//     });
+
+//     // Base URL for images
+//     // const baseUrl = `${process.env.SERVER_PATH}`; // Adjust according to your setup
+//     // console.log("baseUrl....", baseUrl);
+//     // const CategoryWithBaseUrl = Category.map((Category) => {
+//     //   console.log("Category.img", Category.img);
+//     //   return {
+//     //     ...Category.toJSON(), // Convert Sequelize instance to plain object
+//     //     img: Category.img
+//     //       ? baseUrl + Category.img.replace(/\\/g, "/")
+//     //       : null,
+//     //   };
+//     // });
+
+//     return apiResponse.successResponseWithData(
+//       res,
+//       "Category retrieved successfully",
+//       Category1
+//     );
+//   } catch (error) {
+//     console.error("Get Category failed", error);
+//     return apiResponse.ErrorResponse(res, "Get Category failed");
+//   }
+// };
+
 exports.getCategory = async (req, res) => {
   try {
-    const Category1 = await Category.findAll({
-      where: { isDelete: false },
+    
+    const categories = await Category.findAll();
+
+    // Fetch all active projects
+    const activeProjects = await ProjectDetails.findAll({
+      where: { isActive: true },
+      attributes: ['project_category_id'],
     });
 
-    // Base URL for images
-    // const baseUrl = `${process.env.SERVER_PATH}`; // Adjust according to your setup
-    // console.log("baseUrl....", baseUrl);
-    // const CategoryWithBaseUrl = Category.map((Category) => {
-    //   console.log("Category.img", Category.img);
-    //   return {
-    //     ...Category.toJSON(), // Convert Sequelize instance to plain object
-    //     img: Category.img
-    //       ? baseUrl + Category.img.replace(/\\/g, "/")
-    //       : null,
-    //   };
-    // });
+    // Get category IDs that have active projects
+    const activeCategoryIds = new Set(activeProjects.map(project => project.project_category_id));
 
-    return apiResponse.successResponseWithData(
+    // Sort categories based on whether they have active projects
+    const sortedCategories = categories.sort((a, b) => {
+      const aHasProject = activeCategoryIds.has(a.id);
+      const bHasProject = activeCategoryIds.has(b.id);
+
+      if (aHasProject && !bHasProject) return -1;
+      if (!aHasProject && bHasProject) return 1;
+      return 0;
+    });
+  
+
+    return apiResponse.successResponseWithData( 
       res,
       "Category retrieved successfully",
-      Category1
+      sortedCategories
     );
   } catch (error) {
     console.error("Get Category failed", error);
     return apiResponse.ErrorResponse(res, "Get Category failed");
   }
 };
-
 exports.isActiveStatus = async (req, res) => {
   try {
     const { id } = req.params;

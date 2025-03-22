@@ -11,8 +11,10 @@ const authenticateToken = require('../middleware/auth');
 
 const router = express.Router();
 
-router.post('/create-blogdetail', upload.single('img'), authenticateToken, addBlogDetail);
-router.put('/update-blogdetail/:id', upload.single('img'), authenticateToken, updateBlogDetail);
+// upload.single('img') 
+
+router.post('/create-blogdetail', upload.fields([ { name: "img", maxCount: 1 }, { name: "img2", maxCount: 1 },]), authenticateToken, addBlogDetail);
+router.put('/update-blogdetail/:id', upload.fields([ { name: "img", maxCount: 1 }, { name: "img2", maxCount: 1 },]), authenticateToken, updateBlogDetail);
 router.get('/get-blogdetails', getBlogDetails);
 router.get('/find-blogdetails',authenticateToken, getBlogDetails);
 router.put('/isactive-blogdetail/:id', authenticateToken, isActiveStatus);
