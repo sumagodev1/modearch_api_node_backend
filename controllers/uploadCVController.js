@@ -52,7 +52,7 @@ exports.addUploadCV = async (req, res) => {
   try {
     const { name, email, phone, subject, message } = req.body;
     let newDataVal = req.file ? req.file.path : null;
-    // const cv = newDataVal.replace(/\\/g, "/");
+    const cv = newDataVal.replace(/\\/g, "/");
     // const cv = process.env.SERVER_PATH + newDataVal.replace(/\\/g, "/");
 
     const uploadCV = await UploadCV.create({
